@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Thumbnails</title>
+    <style>
+        .thumbnail {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        img {
+            width: 200px;
+            height: auto;
+            cursor: pointer;
+        }
+        #download-link-container a {
+            display: block;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        #download-link-container a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        async function fetchDownloadUrl(streamUrl) {
+            console.log("Coucou")
+            try {
+                const response = await fetch("/get-download-url", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ stream_url: streamUrl })
+                });
+
+                const data = await response.json();
+                console.log(data);  // Pour débogage
+
+                if (data.download_url) {
+                    // Générer un lien de téléchargement et l'afficher à l'utilisateur
+                    const downloadUrl = data.download_url;
+                    console.log("Download URL:", downloadUrl); // Affichez l'URL de téléchargement pour vérification
+
+                    // Créer un bouton pour ouvrir l'URL en plein écran
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = downloadUrl;
+                    downloadLink.textContent = "Ouvrir en plein écran";
+
+                    // Ajouter un gestionnaire d'événements pour forcer l'ouverture
+                    downloadLink.onclick = function(event) {
+                        event.preventDefault(); // Empêche le comportement par défaut
+                        const newWindow = window.open(downloadUrl, '_blank', 'width=' + screen.width + ',height=' + screen.height + ',fullscreen=yes');
+                        if (newWindow) newWindow.focus(); // Donne le focus à la nouvelle fenêtre
+                    };
+
+                    // Ajouter le lien dans la page ou le proposer comme une option
+                    const container = document.getElementById("download-link-container");
+                    container.innerHTML = ""; // Effacer tout lien précédent
+                    container.appendChild(downloadLink);
+                } else {
+                    alert("Erreur : " + (data.error || "Impossible de récupérer l'URL de téléchargement"));
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération de l'URL de téléchargement :", error);
+                alert("Une erreur est survenue lors de la récupération de l'URL.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Video Thumbnails</h1>
+    <div class="thumbnails">
+        {% for video in videos %}
+            <div class="thumbnail">
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" 
+                     onclick="fetchDownloadUrl('{{ video.stream_url }}')">
+                <p>{{ video.title }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Container pour afficher le lien de téléchargement après récupération -->
+    <div id="download-link-container" style="margin-top: 20px;"></div>
+</body>
+</html>
+

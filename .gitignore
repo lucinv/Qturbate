@@ -1,0 +1,9 @@
+pyvenv.cfg
+__pycache__
+bin
+lib
+share
+include
+lib64
+plop
+var

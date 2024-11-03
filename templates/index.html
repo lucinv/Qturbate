@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Gallery</title>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    /* Basic reset and mobile-friendly styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f9f9f9;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      padding: 15px;
+      position: relative;
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #333;
+    }
+    .menu-button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #333;
+    }
+    .menu-button:focus {
+      outline: none;
+    }
+    .menu {
+      display: none;
+      position: absolute;
+      top: 50px;
+      right: 15px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      z-index: 10;
+    }
+    .menu a {
+      display: block;
+      padding: 8px 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .menu a:hover {
+      background-color: #f1f1f1;
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 0 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .video-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .video-card:hover {
+      transform: scale(1.03);
+    }
+    .video-card img {
+      width: 100%;
+      max-height: 150px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .video-details {
+      margin-top: 8px;
+      text-align: center;
+    }
+    .video-title {
+      font-size: 1rem;
+      color: #333;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    .loader {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Video Gallery</h1>
+    <button class="menu-button"><i class="fas fa-bars"></i></button>
+    <div class="menu">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="container">
+    <!-- Video Cards -->
+    {% for video in videos %}
+    <div class="video-card">
+      <img src="{{ video.thumbnail_url }}" alt="Thumbnail of {{ video.title }}" data-stream-url="{{ video.stream_url }}" />
+      <div class="video-details">
+        <div class="video-title">{{ video.title }}</div>
+        <div class="loader">Loading...</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- jQuery and JavaScript for AJAX -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Toggle menu display
+      $(".menu-button").on("click", function () {
+        $(".menu").toggle();
+      });
+
+      // Hide menu when clicking outside
+      $(document).on("click", function (e) {
+        if (!$(e.target).closest(".header").length) {
+          $(".menu").hide();
+        }
+      });
+
+      // Click event for video thumbnails
+      $(".video-card img").on("click", function () {
+        const thumbnail = $(this);
+        const loader = thumbnail.siblings(".loader");
+        const streamUrl = thumbnail.data("stream-url");
+
+        loader.show();
+        thumbnail.closest('.video-card').css("pointer-events", "none");
+
+        // AJAX request to get the download URL
+        $.ajax({
+          url: "/get-download-url",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ stream_url: streamUrl }),
+          success: function (response) {
+            loader.hide();
+            thumbnail.closest('.video-card').css("pointer-events", "auto");
+
+            if (response.error) {
+              alert("Error: " + response.error);
+            } else {
+              window.open(response, "_blank");
+            }
+          },
+          error: function (xhr, status, error) {
+            loader.hide();
+            thumbnail.closest('.video-card').css("pointer-events", "auto");
+            alert("Failed to get download link: " + (xhr.responseText || error));
+          },
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+
