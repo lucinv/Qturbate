@@ -20,7 +20,7 @@ with app.app_context():
 def index():
     videos = asyncio.run(fetch_rooms())
     
-    return render_template('index.html', videos=videos)
+    return render_template('video_gallery.html', videos=videos)
 
 @app.route('/get-download-url', methods=['POST'])
 def get_download_url():

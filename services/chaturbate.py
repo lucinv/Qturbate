@@ -5,6 +5,14 @@ from models import Video
 
 URL = "https://chaturbate.com/api/ts/roomlist/room-list/?limit=90&offset=0"
 
+# Femme
+# https://chaturbate.com/api/ts/roomlist/room-list/?genders=f&limit=90&offset=0
+# Couple
+# https://chaturbate.com/api/ts/roomlist/room-list/?genders=c&limit=90&offset=0
+# Tag 
+# https://chaturbate.com/api/ts/roomlist/room-list/?genders=c&hashtags=french&limit=90&offset=0
+
+
 async def fetch_rooms() -> List[Video]:
     async with httpx.AsyncClient() as client:
         response = await client.get(URL)
