@@ -43,6 +43,42 @@ $(document).ready(function () {
         alert("Failed to get download link: " + (xhr.responseText || error));
       },
     });
-  });
-});
+  }); // <-- Fermeture de la fonction de clic sur img
+
+  // Gestion du clic sur l'icône de lecture
+  $(".play-icon").on("click", function (e) {
+    e.stopPropagation();  // Empêche le clic de se propager à l'image de la vidéo
+    const playIcon = $(this);
+    const loader = playIcon.siblings(".loader");
+    const streamUrl = playIcon.data("stream-url");
+
+    loader.show();
+    playIcon.css("pointer-events", "none");
+
+    // Requête AJAX pour obtenir l'URL de téléchargement
+    $.ajax({
+      url: "/get-download-url",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ stream_url: streamUrl }),
+      success: function (response) {
+        loader.hide();
+        playIcon.css("pointer-events", "auto");
+
+        if (response.error) {
+          alert("Error: " + response.error);
+        } else {
+          // Ouvrir l'URL dans une application externe
+          window.location.href = `vlc://${response}`;  // Utilise un Custom URL Scheme pour VLC ou autre lecteur
+        }
+      },
+      error: function (xhr, status, error) {
+        loader.hide();
+        playIcon.css("pointer-events", "auto");
+        alert("Failed to get external play link: " + (xhr.responseText || error));
+      },
+    });
+  }); // <-- Fermeture de la fonction de clic sur play-icon
+
+}); // <-- Fermeture de $(document).ready
 

@@ -100,4 +100,14 @@ h1 {
   display: none;
   margin-top: 10px;
 }
+.play-icon {
+  font-size: 1.2rem;
+  color: #333;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: color 0.2s;
+}
+.play-icon:hover {
+  color: #007bff;
+}
 

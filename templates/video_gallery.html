@@ -9,6 +9,8 @@
     <img src="{{ video.thumbnail_url }}" alt="Thumbnail of {{ video.title }}" data-stream-url="{{ video.stream_url }}" />
     <div class="video-details">
       <div class="video-title">{{ video.title }}</div>
+      <!-- Nouvelle icône de lecture -->
+      <i class="fas fa-play play-icon" data-stream-url="{{ video.stream_url }}" title="Play externally"></i>
       <div class="loader">Loading...</div>
     </div>
   </div>
