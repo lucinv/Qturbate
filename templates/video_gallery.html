@@ -18,34 +18,3 @@
 </div>
 {% endblock %}
 
-<script>
-document.querySelectorAll('.play-icon').forEach(icon => {
-  icon.addEventListener('click', async () => {
-    const streamUrl = icon.getAttribute('data-stream-url');
-    const loader = icon.nextElementSibling;
-    loader.style.display = 'inline-block';
-
-    try {
-      const response = await fetch('/get-download-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stream_url: streamUrl })
-      });
-
-      const directUrl = await response.text();
-
-      // Ouvre dans une nouvelle fenêtre (ou onglet)
-      window.open(directUrl, '_blank');
-
-      // OU pour lancer dans mpv si handler local :
-      // window.location.href = `mpv://${directUrl}`;
-
-    } catch (err) {
-      alert("Erreur : " + err.message);
-    } finally {
-      loader.style.display = 'none';
-    }
-  });
-});
-</script>
-
