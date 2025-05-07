@@ -12,10 +12,19 @@ URL = "https://chaturbate.com/api/ts/roomlist/room-list/?limit=90&offset=0"
 # Tag 
 # https://chaturbate.com/api/ts/roomlist/room-list/?genders=c&hashtags=french&limit=90&offset=0
 
+headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0",
+        "Referer": "https://fr.chaturbate.com/female-cams/",
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "*/*",
+        "Accept-Language": "fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Cookie": "sessionid=TON_COOKIE_ICI; cf_clearance=TON_CF_CLEARANCE_ICI; ..."  # ⚠️ Mets ton vrai cookie ici
+    }
 
 async def fetch_rooms() -> List[Video]:
     async with httpx.AsyncClient() as client:
-        response = await client.get(URL)
+        response = await client.get(URL, headers=headers)
         response.raise_for_status()  # Vérifie que la requête s'est bien passéelse:
 
         data = response.json()

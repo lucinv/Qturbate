@@ -33,6 +33,7 @@ def get_download_url():
         with YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(stream_url, download=False)
             download_url = info_dict.get("url", None)  # Récupérer l'URL directe
+            print(f"Download URL : {download_url}")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -40,5 +41,6 @@ def get_download_url():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+#    app.run(debug=True)
+# Listen host tel.chaix.fr.eu.org on port 5000
+    app.run(host='tel.chaix.fr.eu.org', port=5000, debug=True)
