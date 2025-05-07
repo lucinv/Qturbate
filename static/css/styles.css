@@ -110,4 +110,14 @@ h1 {
 .play-icon:hover {
   color: #007bff;
 }
+.link-icon{
+  font-size: 1.2rem;
+  color: #333;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: color 0.2s;
+}
+.link-icon:hover {
+  color: #007bff;
+}
 
