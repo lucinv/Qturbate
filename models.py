@@ -14,7 +14,7 @@ class Video(BaseModel):
     # fonction d'initialisation ù on crée l'url mpv_url
     def __init__(self, **data):
         super().__init__(**data)
-        self.mpv_url = self.stream_url.replace("https://", "mpv://")
+        self.mpv_url = str(self.stream_url).replace("https://", "mpv://")
 
 db = SQLAlchemy()
 
