@@ -17,7 +17,9 @@ with app.app_context():
 @app.route('/')
 def index():
     gender = request.args.get("gender")  # Récupère ?gender=f ou ?gender=m
-    videos = asyncio.run(fetch_rooms(gender=gender))
+    tag = request.args.get("tag")  # Récupère ?tag=xxx
+    print(f"tag = {tag}, gender = {gender}")
+    videos = asyncio.run(fetch_rooms(gender=gender, tag=tag))
     return render_template('video_gallery.html', videos=videos)
 
 @app.route('/get-download-url', methods=['POST'])

@@ -5,51 +5,77 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Video Gallery{% endblock %}</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+  <link rel = icon href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
 </head>
 <body>
   <div class="header">
     <h1>Video Gallery</h1>
     <button class="menu-button"><i class="fas fa-bars"></i></button>
+    <script>
+  function updateUrlParam(param, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(param, value);
+    window.location.href = url.toString();
+  }
+    </script>
     <div class="menu">
-      <a href="?gender=f">Female</a>
-      <a href="?gender=c">Couple</a>
+        <form method="get" class="filter-form">
+  <fieldset>
+    <legend>Gender</legend>
+    <label><input type="radio" name="gender" value="f" {{ 'checked' if request.args.get('gender') == 'f' else '' }}> Female</label><br>
+    <label><input type="radio" name="gender" value="m" {{ 'checked' if request.args.get('gender') == 'm' else '' }}> Male</label><br>
+    <label><input type="radio" name="gender" value="c" {{ 'checked' if request.args.get('gender') == 'c' else '' }}> Couple</label><br>
+    <label><input type="radio" name="gender" value="" {{ 'checked' if not request.args.get('gender') }}> Any</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Tags</legend>
+    {% set current_tag = request.args.get('tag') %}
+    <label><input type="radio" name="tag" value="asian" {{ 'checked' if current_tag == 'asian' else '' }}> Asian</label><br>
+    <label><input type="radio" name="tag" value="big-tits" {{ 'checked' if current_tag == 'big-tits' else '' }}> Big Tits</label><br>
+    <label><input type="radio" name="tag" value="milf" {{ 'checked' if current_tag == 'milf' else '' }}> MILF</label><br>
+    <label><input type="radio" name="tag" value="" {{ 'checked' if not current_tag }}> Any</label>
+  </fieldset>
+
+  <button type="submit">Filter</button>
+</form>
     </div>
   </div>
 
   {% block content %}{% endblock %}
 
 
-<script>
-document.querySelectorAll('.play-icon').forEach(icon => {
-  icon.addEventListener('click', async () => {
-    const streamUrl = icon.getAttribute('data-stream-url');
-    const loader = icon.nextElementSibling;
-    loader.style.display = 'inline-block';
+  <script>
+      document.querySelectorAll('.play-icon').forEach(icon => {
+          icon.addEventListener('click', async () => {
+              const streamUrl = icon.getAttribute('data-stream-url');
+              const loader = icon.nextElementSibling;
+              loader.style.display = 'inline-block';
 
-    try {
-      const response = await fetch('/get-download-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stream_url: streamUrl })
+              try {
+                  const response = await fetch('/get-download-url', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ stream_url: streamUrl })
+                  });
+
+                  const directUrl = await response.text();
+
+                  // Ouvre dans une nouvelle fenêtre (ou onglet)
+                  window.open(directUrl, '_blank');
+
+                  // OU pour lancer dans mpv si handler local :
+                  // window.location.href = `mpv://${directUrl}`;
+
+              } catch (err) {
+                  alert("Erreur : " + err.message);
+              } finally {
+                  loader.style.display = 'none';
+              }
+          });
       });
-
-      const directUrl = await response.text();
-
-      // Ouvre dans une nouvelle fenêtre (ou onglet)
-      window.open(directUrl, '_blank');
-
-      // OU pour lancer dans mpv si handler local :
-      // window.location.href = `mpv://${directUrl}`;
-
-    } catch (err) {
-      alert("Erreur : " + err.message);
-    } finally {
-      loader.style.display = 'none';
-    }
-  });
-});
-</script>
+  </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

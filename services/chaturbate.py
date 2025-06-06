@@ -17,21 +17,23 @@ HEADERS = {
 }
 
 # Fonction bloquante exécutée dans un thread
-def sync_fetch_rooms(gender: Optional[str] = None) -> List[dict]:
+def sync_fetch_rooms(gender: Optional[str] = None, tag: Optional[str] = None) -> List[dict]:
     scraper = cloudscraper.create_scraper()
     url = BASE_URL
     if gender in ("f", "m", "c"):
         url += f"&genders={gender}"
+    if tag:
+        url += f"&hashtags={tag}"
     print(f"Fetching rooms with URL: {url}")
     response = scraper.get(url, headers=HEADERS)
     response.raise_for_status()
     return response.json()["rooms"]
 
 # Version async qui appelle la fonction bloquante dans un thread
-async def fetch_rooms(gender: Optional[str] = None) -> List[Video]:
+async def fetch_rooms(gender: Optional[str] = None, tag: Optional[str] = None) -> List[Video]:
     loop = asyncio.get_event_loop()
     with ThreadPoolExecutor() as pool:
-        rooms = await loop.run_in_executor(pool, partial(sync_fetch_rooms, gender=gender))
+        rooms = await loop.run_in_executor(pool, partial(sync_fetch_rooms, gender=gender, tag=tag))
 
     return [
         Video(
