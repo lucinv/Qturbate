@@ -16,8 +16,8 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    videos = asyncio.run(fetch_rooms())
-    
+    gender = request.args.get("gender")  # Récupère ?gender=f ou ?gender=m
+    videos = asyncio.run(fetch_rooms(gender=gender))
     return render_template('video_gallery.html', videos=videos)
 
 @app.route('/get-download-url', methods=['POST'])
@@ -43,4 +43,6 @@ def get_download_url():
 if __name__ == '__main__':
 #    app.run(debug=True)
 # Listen host tel.chaix.fr.eu.org on port 5000
-    app.run(host='tel.chaix.fr.eu.org', port=5000, debug=True)
+    # app.run(host='tel.chaix.fr.eu.org', port=5000, debug=True)
+
+    app.run(host='127.0.0.1', port=5000, debug=True)

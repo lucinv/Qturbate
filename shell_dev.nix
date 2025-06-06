@@ -5,6 +5,11 @@ pkgs.mkShell {
     pkgs.python3
     flask
     tkinter
+    yt-dlp
+    cloudscraper
+    httpx
+    pydantic
+    flask_sqlalchemy
   ];
 }
 
