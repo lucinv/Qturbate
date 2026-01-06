@@ -16,6 +16,12 @@ with app.app_context():
 
 @app.route('/')
 def index():
+
+    # DEBUG
+    user_agent = request.headers.get('User-Agent')
+    print(f"User-Agent: {user_agent}")
+    # /DEBUG
+
     gender = request.args.get("gender")  # Récupère ?gender=f ou ?gender=m
     tag = request.args.get("tag")  # Récupère ?tag=xxx
     print(f"tag = {tag}, gender = {gender}")
@@ -27,7 +33,6 @@ def get_download_url():
     data = request.json
     stream_url = data.get("stream_url")
 
-    # Utilisation de yt-dlp pour obtenir le lien de téléchargement direct
     try:
         ydl_opts = {
             'format': '1',  # Choisir la meilleure qualité disponible
@@ -43,8 +48,5 @@ def get_download_url():
 
 
 if __name__ == '__main__':
-#    app.run(debug=True)
-# Listen host tel.chaix.fr.eu.org on port 5000
-    # app.run(host='tel.chaix.fr.eu.org', port=5000, debug=True)
 
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5001, debug=True)
