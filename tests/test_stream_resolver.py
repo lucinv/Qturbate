@@ -1,9 +1,9 @@
 """Tests pour le résolveur de flux (yt-dlp mocké)."""
 from unittest.mock import patch, MagicMock
-from utils.yt import get_direct_stream_url
+from services.stream_resolver import get_direct_stream_url
 
 
-@patch("utils.yt.YoutubeDL")
+@patch("services.stream_resolver.YoutubeDL")
 def test_get_direct_stream_url_success(mock_ydl_class):
     """Doit retourner l'URL directe extraite par yt-dlp."""
     mock_ydl_instance = MagicMock()
@@ -22,7 +22,7 @@ def test_get_direct_stream_url_success(mock_ydl_class):
     )
 
 
-@patch("utils.yt.YoutubeDL")
+@patch("services.stream_resolver.YoutubeDL")
 def test_get_direct_stream_url_no_url(mock_ydl_class):
     """Doit retourner None si yt-dlp ne trouve pas d'URL."""
     mock_ydl_instance = MagicMock()
