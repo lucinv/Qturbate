@@ -12,6 +12,8 @@ pkgs.mkShell {
     flask-sqlalchemy
     pillow
     pyqt6
+    pytest
+    pytest-mock
   ];
 
 shellHook = ''
