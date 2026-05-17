@@ -64,9 +64,11 @@ class RecordingManager(QObject):
         info.output_path = output_path
 
         def _download():
+            # Chaturbate fournit du HLS — on utilise bestvideo+bestaudio
+            # avec fallback sur best tout court pour les autres sources.
             ydl_opts = {
                 "outtmpl": str(output_path),
-                "format": "best",
+                "format": "bestvideo+bestaudio/best",
                 "quiet": True,
                 "no_warnings": True,
                 "progress_hooks": [lambda d: self._on_ytdlp_progress(info, d)],
@@ -84,6 +86,21 @@ class RecordingManager(QObject):
         self.recording_started.emit(info.uid)
         t = threading.Thread(target=_download, daemon=True)
         t.start()
+
+    def stop_recording(self, uid):
+        """Stoppe un téléchargement (supprime le fichier partiel)."""
+        info = self._recordings.get(uid)
+        if not info or not info.active:
+            return
+        info.active = False
+        if info.output_path and os.path.exists(info.output_path):
+            try:
+                os.remove(info.output_path)
+            except OSError:
+                pass
+
+    def get_info(self, uid):
+        return self._recordings.get(uid)
 
     def _on_ytdlp_progress(self, info, d):
         if d.get("status") == "downloading":

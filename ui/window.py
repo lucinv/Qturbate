@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 from ui.layouts import FlowLayout
 from ui.widgets import VideoCard, ThumbnailLoader
 from ui.workers import FetchWorker, RecordingManager
+from ui.recording_panel import RecordingPanel
 from services.chaturbate import fetch_rooms
 
 
@@ -24,7 +25,7 @@ class VideoWindow(QMainWindow):
         self.resize(1500, 900)
         self.setMinimumSize(1000, 600)
 
-        self.current_gender = ""
+        self.current_gender = "f"  # Female par défaut
         self.current_tag = None
         self.cards = []
         self.loader = None
@@ -49,17 +50,22 @@ class VideoWindow(QMainWindow):
         # Toolbar
         toolbar = QToolBar()
         toolbar.setMovable(False)
-        toolbar.setStyleSheet("QToolBar { background: #1a1a1a; border: none; padding: 4px; spacing: 8px; }")
+        toolbar.setStyleSheet(
+            "QToolBar { background: #1a1a1a; border: none; padding: 4px; spacing: 8px; }"
+        )
 
         self.gender_combo = QComboBox()
         self.gender_combo.addItems(["Any", "Female", "Male", "Couple"])
+        self.gender_combo.setCurrentText("Female")
         self.gender_combo.currentTextChanged.connect(lambda _: self._on_filter())
         toolbar.addWidget(QLabel("  Gender:"))
         toolbar.addWidget(self.gender_combo)
 
         self.tag_combo = QComboBox()
-        self.tag_combo.addItems(["Any", "asian", "ebony", "bigboobs", "bigass",
-                                  "18", "new", "teen", "french", "lesbian"])
+        self.tag_combo.addItems(
+            ["Any", "asian", "ebony", "bigboobs", "bigass",
+             "18", "new", "teen", "french", "lesbian"]
+        )
         self.tag_combo.currentTextChanged.connect(lambda _: self._on_filter())
         toolbar.addWidget(QLabel("  Tag:"))
         toolbar.addWidget(self.tag_combo)
@@ -76,8 +82,8 @@ class VideoWindow(QMainWindow):
 
         vlayout.addWidget(toolbar)
 
-        # Splitter: Galerie (haut) / Enregistrements (bas)
-        splitter = QSplitter(Qt.Orientation.Vertical)
+        # Splitter horizontal: galerie (gauche) / panel downloads (droite)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # Zone de défilement avec FlowLayout
         scroll = QScrollArea()
@@ -91,30 +97,13 @@ class VideoWindow(QMainWindow):
         scroll.setWidget(scroll_content)
         splitter.addWidget(scroll)
 
-        # Panneau des enregistrements
-        rec_widget = QWidget()
-        rec_layout = QVBoxLayout(rec_widget)
-        rec_layout.setContentsMargins(8, 4, 8, 4)
-        rec_title = QLabel("Downloads")
-        rec_title.setStyleSheet("color: white; font-size: 14px; font-weight: bold;")
-        rec_layout.addWidget(rec_title)
-        self.rec_list = QWidget()
-        self.rec_list_layout = QVBoxLayout(self.rec_list)
-        self.rec_list_layout.setSpacing(2)
-        rec_layout.addWidget(self.rec_list)
+        # Panneau latéral des enregistrements
+        self.recording_panel = RecordingPanel()
+        self.recording_panel.folder_btn.clicked.connect(self._open_download_folder)
+        self.recording_panel.stop_requested.connect(self._stop_recording)
+        splitter.addWidget(self.recording_panel)
 
-        open_folder_btn = QPushButton("📂 Open download folder")
-        open_folder_btn.setStyleSheet("""
-            QPushButton { background: #333; color: white;
-                          border: none; border-radius: 4px;
-                          padding: 6px 12px; text-align: left; }
-            QPushButton:hover { background: #444; }
-        """)
-        open_folder_btn.clicked.connect(self._open_download_folder)
-        rec_layout.addWidget(open_folder_btn)
-        splitter.addWidget(rec_widget)
-        splitter.setSizes([700, 200])
-
+        splitter.setSizes([1000, 300])
         vlayout.addWidget(splitter)
 
         # Status bar
@@ -124,7 +113,7 @@ class VideoWindow(QMainWindow):
         status_bar.addWidget(self.status_label)
         self.setStatusBar(status_bar)
 
-        # Enregistrer les signaux du recording manager
+        # Connexion des signaux du recording manager
         self.recording_manager.recording_started.connect(self._on_recording_started)
         self.recording_manager.recording_finished.connect(self._on_recording_finished)
         self.recording_manager.recording_progress.connect(self._on_recording_progress)
@@ -198,9 +187,13 @@ class VideoWindow(QMainWindow):
                 break
 
     def _on_thumbnails_done(self):
-        loaded = sum(1 for c in self.cards
-                     if c.image_label.pixmap() and not c.image_label.pixmap().isNull())
-        self.status_label.setText(f"Ready — {len(self.cards)} videos, {loaded} thumbnails")
+        loaded = sum(
+            1 for c in self.cards
+            if c.image_label.pixmap() and not c.image_label.pixmap().isNull()
+        )
+        self.status_label.setText(
+            f"Ready — {len(self.cards)} videos, {loaded} thumbnails"
+        )
 
     def _clear_cards(self):
         if self.loader:
@@ -238,17 +231,38 @@ class VideoWindow(QMainWindow):
     # ── Recording events ──────────────────────────────────────────────
 
     def _on_recording_started(self, uid):
-        pass
+        info = self.recording_manager.get_info(uid)
+        if info:
+            self.recording_panel.add_active(uid, info.title)
+            self.status_label.setText(f"Downloading {info.title}…")
 
     def _on_recording_finished(self, uid):
-        info = self.recording_manager._recordings.get(uid)
-        if info and info.error:
-            print(f"Recording failed for {uid}: {info.error}")
-        elif info:
-            print(f"Recording finished: {info.output_path}")
+        info = self.recording_manager.get_info(uid)
+        if info:
+            self.recording_panel.move_to_finished(uid, info.title, info.error)
+            if info.error:
+                self.status_label.setText(f"Download failed: {info.title}")
+            else:
+                self.status_label.setText(f"Downloaded: {info.title}")
+            # Mettre à jour la taille sur la carte
+            for card in self.cards:
+                if card.video.id == uid:
+                    card.update_size(info.size)
+                    break
 
     def _on_recording_progress(self, info):
+        # Mettre à jour le panel latéral
+        self.recording_panel.update_progress(info.uid, info.title, info.size)
+        # Mettre à jour la taille sur la carte
         for card in self.cards:
             if card.video.id == info.uid:
                 card.update_size(info.size)
                 break
+
+    def _stop_recording(self, uid):
+        """Arrête un téléchargement et le déplace dans 'Finished'."""
+        info = self.recording_manager.get_info(uid)
+        if info:
+            self.recording_manager.stop_recording(uid)
+            self.recording_panel.move_to_finished(uid, info.title, "Stopped")
+            self.status_label.setText(f"Stopped: {info.title}")
