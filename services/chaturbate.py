@@ -1,7 +1,12 @@
 """Client synchrone pour l'API Chaturbate."""
+import logging
 from typing import List, Optional
+
 import cloudscraper
+
 from domain.video import Video
+
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://chaturbate.com/api/ts/roomlist/room-list/?limit=90&offset=0"
 
@@ -14,15 +19,7 @@ HEADERS = {
 
 
 def fetch_rooms(gender: Optional[str] = None, tag: Optional[str] = None) -> List[Video]:
-    """Récupère la liste des rooms Chaturbate.
-
-    Args:
-        gender: Filtre par genre ('f', 'm', 'c') ou None.
-        tag: Filtre par hashtag (ex: 'asian') ou None.
-
-    Returns:
-        Liste d'objets Video.
-    """
+    """Récupère la liste des rooms Chaturbate."""
     scraper = cloudscraper.create_scraper()
     url = BASE_URL
     if gender in ("f", "m", "c"):
@@ -30,9 +27,11 @@ def fetch_rooms(gender: Optional[str] = None, tag: Optional[str] = None) -> List
     if tag:
         url += f"&hashtags={tag}"
 
+    logger.info("Fetching rooms from %s", url)
     response = scraper.get(url, headers=HEADERS)
     response.raise_for_status()
     rooms = response.json()["rooms"]
+    logger.debug("Got %d rooms", len(rooms))
 
     return [
         Video(
