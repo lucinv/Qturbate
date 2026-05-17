@@ -6,7 +6,7 @@ import sys
 import io
 import os
 import uuid
-import asyncio
+
 import subprocess
 import threading
 from datetime import datetime
@@ -132,7 +132,7 @@ class FetchWorker(QObject):
 
     def run(self):
         try:
-            videos = asyncio.run(fetch_rooms(gender=self.gender, tag=self.tag))
+            videos = fetch_rooms(gender=self.gender, tag=self.tag)
             self.finished.emit(videos)
         except Exception as e:
             self.error.emit(str(e))

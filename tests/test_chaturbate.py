@@ -1,6 +1,6 @@
 """Tests pour le service Chaturbate (mocked HTTP)."""
 from unittest.mock import patch, MagicMock
-from services.chaturbate import sync_fetch_rooms
+from services.chaturbate import fetch_rooms
 
 
 @patch("services.chaturbate.cloudscraper.create_scraper")
@@ -26,12 +26,14 @@ def test_fetch_rooms_returns_video_list(mock_create_scraper):
     mock_create_scraper.return_value = mock_scraper
 
     from domain.video import Video
-    rooms = sync_fetch_rooms()  # Appel synchrone direct
+    videos = fetch_rooms()
 
-    assert len(rooms) == 2
-    # Pour l'instant c'est une liste de dicts bruts
-    assert rooms[0]["username"] == "streamer1"
-    assert rooms[1]["username"] == "streamer2"
+    assert len(videos) == 2
+    assert all(isinstance(v, Video) for v in videos)
+    assert videos[0].id == "streamer1"
+    assert videos[0].title == "streamer1"
+    assert videos[0].description == "Salut les gens"
+    assert videos[1].description is None
 
 
 @patch("services.chaturbate.cloudscraper.create_scraper")
@@ -43,7 +45,7 @@ def test_fetch_rooms_passes_gender_and_tag(mock_create_scraper):
     mock_scraper.get.return_value = mock_response
     mock_create_scraper.return_value = mock_scraper
 
-    sync_fetch_rooms(gender="f", tag="asian")
+    fetch_rooms(gender="f", tag="asian")
 
     call_url = mock_scraper.get.call_args[0][0]
     assert "genders=f" in call_url

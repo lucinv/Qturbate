@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify
-import asyncio
 from services.chaturbate import fetch_rooms
 from storage.models import db
 from services.stream_resolver import get_direct_stream_url
@@ -17,7 +16,7 @@ with app.app_context():
 def index():
     gender = request.args.get("gender")
     tag = request.args.get("tag")
-    videos = asyncio.run(fetch_rooms(gender=gender, tag=tag))
+    videos = fetch_rooms(gender=gender, tag=tag)
     return render_template('video_gallery.html', videos=videos)
 
 
