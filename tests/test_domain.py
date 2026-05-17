@@ -1,5 +1,5 @@
 """Tests pour le modèle Video (domaine pur, zéro dépendance externe)."""
-from models import Video
+from domain.video import Video
 
 
 def test_video_defaults():

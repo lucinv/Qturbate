@@ -25,7 +25,7 @@ from PyQt6.QtWidgets import (
 )
 
 from services.chaturbate import fetch_rooms
-from models import Video
+from domain.video import Video
 
 
 # ── Flow Layout ──────────────────────────────────────────────────────

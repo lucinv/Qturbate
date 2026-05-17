@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import asyncio
 from yt_dlp import YoutubeDL
 from services.chaturbate import fetch_rooms
-from models import db
+from storage.models import db
 
 
 app = Flask(__name__)

@@ -2,7 +2,7 @@ import asyncio
 import cloudscraper
 import httpx
 from typing import List, Optional
-from models import Video
+from domain.video import Video
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor
 

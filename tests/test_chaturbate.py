@@ -25,7 +25,7 @@ def test_fetch_rooms_returns_video_list(mock_create_scraper):
     mock_scraper.get.return_value = mock_response
     mock_create_scraper.return_value = mock_scraper
 
-    from models import Video
+    from domain.video import Video
     rooms = sync_fetch_rooms()  # Appel synchrone direct
 
     assert len(rooms) == 2
