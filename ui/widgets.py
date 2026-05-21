@@ -17,7 +17,7 @@ class ThumbnailLoader(QThread):
     thumbnail_data = pyqtSignal(object, bytes)
     finished_all = pyqtSignal()
 
-    SIZE = (260, 160)
+    SIZE = (260, 146)
 
     def __init__(self, videos, parent=None):
         super().__init__(parent)
@@ -29,7 +29,8 @@ class ThumbnailLoader(QThread):
                 resp = requests.get(str(video.thumbnail_url), timeout=10)
                 resp.raise_for_status()
                 img = Image.open(io.BytesIO(resp.content))
-                img = img.convert("RGB").resize(self.SIZE, Image.LANCZOS)
+                img = img.convert("RGB")
+                img.thumbnail(self.SIZE, Image.LANCZOS)
                 buf = io.BytesIO()
                 img.save(buf, format="JPEG", quality=85)
                 self.thumbnail_data.emit(video, buf.getvalue())
@@ -43,7 +44,7 @@ class VideoCard(QFrame):
     clicked = pyqtSignal(object)
     download_clicked = pyqtSignal(object)
 
-    CARD_WIDTH = 160
+    CARD_WIDTH = 268
 
     def __init__(self, video, parent=None):
         super().__init__(parent)
@@ -69,10 +70,10 @@ class VideoCard(QFrame):
 
         # Vignette
         self.image_label = QLabel()
-        self.image_label.setFixedSize(260, 160)
+        self.image_label.setFixedSize(260, 146)
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setStyleSheet("background-color: #2a2a2a; border-radius: 4px;")
-        placeholder = QPixmap(260, 160)
+        placeholder = QPixmap(260, 146)
         placeholder.fill(Qt.GlobalColor.darkGray)
         self.image_label.setPixmap(placeholder)
         layout.addWidget(self.image_label)
@@ -128,7 +129,7 @@ class VideoCard(QFrame):
     def set_image(self, pixmap: QPixmap):
         """Définit l'image de la vignette."""
         self.image_label.setPixmap(pixmap.scaled(
-            260, 160,
+            260, 146,
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation,
         ))
