@@ -55,7 +55,8 @@
 
           postFixup = ''
             wrapQtApp $out/bin/qturbate \
-              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp pkgs.mpv ]}
+              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp pkgs.mpv ]} \
+              --unset QT_STYLE_OVERRIDE
           '';
 
           doCheck = false;
