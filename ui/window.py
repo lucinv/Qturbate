@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy, QSplitter,
 )
 
+from ui.favorites import FavoritesStore
 from ui.layouts import FlowLayout
 from ui.widgets import VideoCard, ThumbnailLoader
 from ui.workers import FetchWorker, RecordingManager
@@ -25,12 +26,13 @@ class VideoWindow(QMainWindow):
         self.resize(1500, 900)
         self.setMinimumSize(1000, 600)
 
-        self.current_gender = "f"  # Female par défaut
+        self.current_gender = "f"
         self.current_tag = None
         self.cards = []
         self.loader = None
         self._fetch_thread = None
         self._fetch_worker = None
+        self._favorites_mode = False
 
         self.recording_manager = RecordingManager(self)
 
@@ -69,6 +71,20 @@ class VideoWindow(QMainWindow):
         self.tag_combo.currentTextChanged.connect(lambda _: self._on_filter())
         toolbar.addWidget(QLabel("  Tag:"))
         toolbar.addWidget(self.tag_combo)
+
+        self.fav_btn = QPushButton("☆ Favorites")
+        self.fav_btn.setCheckable(True)
+        self.fav_btn.setStyleSheet("""
+            QPushButton { background: #333; color: #aaa;
+                          border: 1px solid #555; border-radius: 4px;
+                          padding: 6px 12px; font-size: 12px; }
+            QPushButton:hover { background: #444; color: #FFD700; }
+            QPushButton:checked { background: #5a3e00; color: #FFD700;
+                                  border: 1px solid #FFD700; font-weight: bold; }
+        """)
+        self.fav_btn.toggled.connect(self._on_favorites_toggled)
+        toolbar.addWidget(self.fav_btn)
+        toolbar.addSeparator()
 
         self.refresh_btn = QPushButton("⟳ Refresh")
         self.refresh_btn.clicked.connect(self.load_videos)
@@ -164,8 +180,12 @@ class VideoWindow(QMainWindow):
             card = VideoCard(video)
             card.clicked.connect(self.open_video)
             card.download_clicked.connect(self._start_download)
+            card.favorite_toggled.connect(self._on_card_favorite_toggled)
             self.flow.addWidget(card)
             self.cards.append(card)
+
+        if self._favorites_mode:
+            self._apply_favorites_filter()
 
         self.status_label.setText(f"Loaded {len(videos)} videos — loading thumbnails…")
 
@@ -187,6 +207,10 @@ class VideoWindow(QMainWindow):
                 break
 
     def _on_thumbnails_done(self):
+        if self._favorites_mode:
+            visible = sum(1 for c in self.cards if c.isVisible())
+            self.status_label.setText(f"Favorites ({visible})")
+            return
         loaded = sum(
             1 for c in self.cards
             if c.image_label.pixmap() and not c.image_label.pixmap().isNull()
@@ -194,6 +218,41 @@ class VideoWindow(QMainWindow):
         self.status_label.setText(
             f"Ready — {len(self.cards)} videos, {loaded} thumbnails"
         )
+
+    # ── Favorites ─────────────────────────────────────────────────────
+
+    def _on_favorites_toggled(self, checked: bool):
+        self._favorites_mode = checked
+        self.fav_btn.setText("★ Favorites" if checked else "☆ Favorites")
+        self._apply_favorites_filter()
+
+    def _apply_favorites_filter(self):
+        if not self.cards:
+            return
+        visible = 0
+        for card in self.cards:
+            is_fav = FavoritesStore.is_favorite(card.video.id)
+            show = is_fav if self._favorites_mode else True
+            card.setVisible(show)
+            if show:
+                visible += 1
+        if self._favorites_mode:
+            self.status_label.setText(f"Favorites ({visible})")
+        else:
+            total = len(self.cards)
+            loaded = sum(1 for c in self.cards if c.image_label.pixmap() and not c.image_label.pixmap().isNull())
+            self.status_label.setText(f"Ready — {total} videos, {loaded} thumbnails")
+
+    def _on_card_favorite_toggled(self, video, is_favorite: bool):
+        if self._favorites_mode and not is_favorite:
+            for card in self.cards:
+                if card.video is video:
+                    card.setVisible(False)
+                    break
+            visible = sum(1 for c in self.cards if c.isVisible())
+            self.status_label.setText(f"Favorites ({visible})")
+
+    # ── Clear ─────────────────────────────────────────────────────────
 
     def _clear_cards(self):
         if self.loader:

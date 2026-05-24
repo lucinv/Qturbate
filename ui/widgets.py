@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy,
 )
 
+from ui.favorites import FavoritesStore
 from ui.helpers import format_bytes
 
 
@@ -43,6 +44,7 @@ class VideoCard(QFrame):
     """Carte individuelle représentant une vidéo dans la galerie."""
     clicked = pyqtSignal(object)
     download_clicked = pyqtSignal(object)
+    favorite_toggled = pyqtSignal(object, bool)
 
     CARD_WIDTH = 268
 
@@ -89,6 +91,14 @@ class VideoCard(QFrame):
         # Boutons
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(4)
+
+        is_fav = FavoritesStore.is_favorite(video.id)
+        self.fav_btn = QPushButton("★" if is_fav else "☆")
+        self.fav_btn.setFixedSize(26, 28)
+        self.fav_btn.setToolTip("Toggle favorite")
+        self.fav_btn.setStyleSheet(self._fav_style(is_fav))
+        self.fav_btn.clicked.connect(self._toggle_favorite)
+        btn_layout.addWidget(self.fav_btn)
 
         play_btn = QPushButton("▶ Play")
         play_btn.setFixedHeight(28)
@@ -137,3 +147,29 @@ class VideoCard(QFrame):
     def update_size(self, bytes_: int):
         """Met à jour l'affichage de la taille téléchargée."""
         self.size_label.setText(format_bytes(bytes_))
+
+    def _toggle_favorite(self):
+        is_fav = FavoritesStore.toggle(self.video.id)
+        self._update_fav_button(is_fav)
+        self.favorite_toggled.emit(self.video, is_fav)
+
+    def _update_fav_button(self, is_fav: bool):
+        self.fav_btn.setText("★" if is_fav else "☆")
+        self.fav_btn.setStyleSheet(self._fav_style(is_fav))
+
+    @staticmethod
+    def _fav_style(is_fav: bool) -> str:
+        if is_fav:
+            return (
+                "QPushButton { background-color: #5a3e00; color: #FFD700;"
+                " border: 1px solid #FFD700; border-radius: 4px; font-size: 14px; }"
+                "QPushButton:hover { background-color: #6b4e00; }"
+            )
+        return (
+            "QPushButton { background-color: #333; color: #888;"
+            " border: 1px solid #555; border-radius: 4px; font-size: 14px; }"
+            "QPushButton:hover { background-color: #444; color: #aaa; }"
+        )
+
+    def set_favorite_state(self, is_fav: bool):
+        self._update_fav_button(is_fav)
