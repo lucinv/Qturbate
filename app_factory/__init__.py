@@ -11,12 +11,12 @@ def create_app(config_name: str = "development") -> Flask:
     """Crée et configure l'application Flask."""
     from app_factory.config import configs
 
-    root = Path(__file__).resolve().parent.parent
+    pkg_dir = Path(__file__).resolve().parent
 
     app = Flask(
         __name__,
-        template_folder=str(root / "templates"),
-        static_folder=str(root / "static"),
+        template_folder=str(pkg_dir / "templates"),
+        static_folder=str(pkg_dir / "static"),
         static_url_path="/static",
     )
     app.config.from_object(configs.get(config_name, configs["default"]))

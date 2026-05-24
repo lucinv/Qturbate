@@ -19,26 +19,17 @@
         python = pkgs.python3;
         pythonPkgs = python.pkgs;
 
-        # Dépendances Python communes au runtime et au dev
-        baseDeps = with pythonPkgs; [
-          # Web
+        runtimeDeps = with pythonPkgs; [
           flask
           flask-sqlalchemy
-
-          # Stream / scraping
           yt-dlp
           cloudscraper
-
-          # Modèles & data
           pydantic
           pillow
           requests
-
-          # PyQt6 desktop GUI
           pyqt6
         ];
 
-        # Dépendances de dev (tests, outils)
         devDeps = with pythonPkgs; [
           pytest
           pytest-mock
@@ -49,16 +40,28 @@
         packages.default = pythonPkgs.buildPythonApplication {
           pname = "vids";
           version = "0.1.0";
+          format = "pyproject";
 
-          src = ./.;
+          src = builtins.path { path = ./.; name = "vids-source"; };
 
-          dontUseSetuptoolsCheck = true;
+          nativeBuildInputs = with pkgs.qt6; [
+            qtbase
+            wrapQtAppsHook
+          ] ++ (with pythonPkgs; [
+            setuptools
+          ]);
 
-          propagatedBuildInputs = baseDeps;
+          propagatedBuildInputs = runtimeDeps;
+
+          postFixup = ''
+            wrapQtApp $out/bin/vids-gui \
+              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp pkgs.mpv ]}
+            wrapQtApp $out/bin/vids \
+              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp ]}
+          '';
 
           doCheck = false;
 
-          # Meta information
           meta = with nixpkgs.lib; {
             description = "Stream viewer application";
             license = licenses.mit;
@@ -67,7 +70,7 @@
         };
 
         devShells.default = pkgs.mkShell {
-          buildInputs = baseDeps ++ devDeps ++ [ python ];
+          buildInputs = runtimeDeps ++ devDeps ++ [ python ];
 
           shellHook = ''
             echo ""
