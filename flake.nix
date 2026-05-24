@@ -1,5 +1,5 @@
 {
-  description = "Vids — Stream viewer application (Flask web + PyQt6 desktop)";
+  description = "qturbate — Chaturbate stream viewer (PyQt6)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
@@ -20,8 +20,6 @@
         pythonPkgs = python.pkgs;
 
         runtimeDeps = with pythonPkgs; [
-          flask
-          flask-sqlalchemy
           yt-dlp
           cloudscraper
           pydantic
@@ -31,6 +29,8 @@
         ];
 
         devDeps = with pythonPkgs; [
+          flask
+          flask-sqlalchemy
           pytest
           pytest-mock
         ];
@@ -38,11 +38,11 @@
       in
       {
         packages.default = pythonPkgs.buildPythonApplication {
-          pname = "vids";
+          pname = "qturbate";
           version = "0.1.0";
           format = "pyproject";
 
-          src = builtins.path { path = ./.; name = "vids-source"; };
+          src = builtins.path { path = ./.; name = "qturbate-source"; };
 
           nativeBuildInputs = with pkgs.qt6; [
             qtbase
@@ -54,16 +54,14 @@
           propagatedBuildInputs = runtimeDeps;
 
           postFixup = ''
-            wrapQtApp $out/bin/vids-gui \
+            wrapQtApp $out/bin/qturbate \
               --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp pkgs.mpv ]}
-            wrapQtApp $out/bin/vids \
-              --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.yt-dlp ]}
           '';
 
           doCheck = false;
 
           meta = with nixpkgs.lib; {
-            description = "Stream viewer application";
+            description = "Chaturbate stream viewer";
             license = licenses.mit;
             maintainers = [ ];
           };
@@ -75,10 +73,9 @@
           shellHook = ''
             echo ""
             echo "╔══════════════════════════════════════╗"
-            echo "║  Vids — environnement de développement ║"
+            echo "║  qturbate — environnement de développement ║"
             echo "╚══════════════════════════════════════╝"
             echo ""
-            echo "  Flask web  : python app.py"
             echo "  PyQt6 GUI  : python main_tk.py"
             echo "  Tests      : python -m pytest"
             echo ""

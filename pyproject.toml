@@ -3,13 +3,11 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vids"
+name = "qturbate"
 version = "0.1.0"
-description = "Stream viewer application"
+description = "Chaturbate stream viewer (PyQt6)"
 requires-python = ">=3.10"
 dependencies = [
-    "flask",
-    "flask-sqlalchemy",
     "yt-dlp",
     "cloudscraper",
     "pydantic",
@@ -19,8 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-vids = "app:main"
-vids-gui = "main_tk:main"
+qturbate = "main_tk:main"
 
 [tool.setuptools]
 py-modules = ["app", "main_tk"]
