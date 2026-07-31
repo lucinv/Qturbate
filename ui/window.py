@@ -122,6 +122,23 @@ class VideoWindow(QMainWindow):
         splitter.setSizes([1000, 300])
         vlayout.addWidget(splitter)
 
+        # Bascule d'affichage du panneau latéral (masqué par défaut)
+        toolbar.addSeparator()
+        self.panel_btn = QPushButton("▤ Panel")
+        self.panel_btn.setCheckable(True)
+        self.panel_btn.setChecked(False)
+        self.panel_btn.setStyleSheet("""
+            QPushButton { background: #333; color: #aaa;
+                          border: 1px solid #555; border-radius: 4px;
+                          padding: 6px 12px; font-size: 12px; }
+            QPushButton:hover { background: #444; color: white; }
+            QPushButton:checked { background: #5a8de0; color: white;
+                                  border: 1px solid #5a8de0; }
+        """)
+        self.panel_btn.toggled.connect(self.recording_panel.setVisible)
+        toolbar.addWidget(self.panel_btn)
+        self.recording_panel.hide()
+
         # Status bar
         status_bar = QStatusBar()
         status_bar.setStyleSheet("QStatusBar { background: #1a1a1a; color: #aaa; }")
